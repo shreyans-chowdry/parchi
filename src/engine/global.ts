@@ -1,0 +1,105 @@
+// Global language packs: Spanish, Portuguese, French, Arabic and Indonesian.
+// Each pack adds number words, order units, colours, sizes, fillers and deadline
+// words to the shared lexicon. Adding a market means adding a pack, not rewriting
+// the engine. Keys are normalised the same way the tokenizer normalises text.
+
+import type { OrderUnit } from './types';
+import { normArabic } from './normalize';
+
+export interface LanguagePack {
+  name: string;
+  numbers: Record<string, number>;
+  units: Record<string, OrderUnit>;
+  colors: Record<string, string>;
+  sizes: Record<string, 'small' | 'medium' | 'large'>;
+  stop: string[];
+  deadlines: Record<string, { label: string; days: number }>;
+  urgent: string[];
+  detect: RegExp;
+}
+
+const TODAY = { label: 'Today', days: 0 };
+const TOMORROW = { label: 'Tomorrow', days: 1 };
+
+export const PACKS: LanguagePack[] = [
+  {
+    name: 'Spanish',
+    numbers: { uno: 1, una: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10,
+      doce: 12, quince: 15, veinte: 20, treinta: 30, cuarenta: 40, cincuenta: 50, cien: 100, ciento: 100, media: 0.5, medio: 0.5 },
+    units: { docena: 'dozen', docenas: 'dozen', caja: 'box', cajas: 'box', paquete: 'pkt', paquetes: 'pkt', pieza: 'pc', piezas: 'pc',
+      unidad: 'pc', unidades: 'pc', rollo: 'roll', rollos: 'roll', juego: 'set', juegos: 'set', bulto: 'carton', bultos: 'carton' },
+    colors: { rojo: 'red', roja: 'red', azul: 'blue', verde: 'green', amarillo: 'yellow', negro: 'black', negra: 'black',
+      blanco: 'white', blanca: 'white', rosa: 'pink', dorado: 'golden', dorada: 'golden', plateado: 'silver', marron: 'brown', 'marrón': 'brown' },
+    sizes: { 'pequeño': 'small', pequeno: 'small', 'pequeños': 'small', 'pequeñas': 'small', chico: 'small', chica: 'small', chicos: 'small', mediano: 'medium', mediana: 'medium', medianos: 'medium', medianas: 'medium', grande: 'large', grandes: 'large' },
+    stop: ['hola', 'buenos', 'dias', 'días', 'por', 'favor', 'necesito', 'necesitamos', 'enviar', 'envíe', 'envie', 'envíen', 'manda', 'mándame',
+      'mandame', 'quiero', 'me', 'mi', 'nos', 'traer', 'entregar', 'del', 'el', 'los', 'las', 'con', 'gracias', 'también', 'tambien', 'señor', 'senor', 'pedido', 'para', 'antes', 'favor,'],
+    deadlines: { 'mañana': TOMORROW, manana: TOMORROW, hoy: TODAY },
+    urgent: ['urgente', 'rápido', 'rapido'],
+    detect: /\b(hola|por favor|necesito|docenas?|cajas?|paquetes|rollos|mañana|manana|gracias|grapadoras?|cuadernos?|papel de regalo)\b/i,
+  },
+  {
+    name: 'Portuguese',
+    numbers: { uma: 1, dois: 2, duas: 2, 'três': 3, quatro: 4, cinco: 5, seis: 6, sete: 7, oito: 8, nove: 9, dez: 10,
+      doze: 12, quinze: 15, vinte: 20, trinta: 30, quarenta: 40, cinquenta: 50, cem: 100 },
+    units: { 'dúzia': 'dozen', duzia: 'dozen', 'dúzias': 'dozen', duzias: 'dozen', caixa: 'box', caixas: 'box', pacote: 'pkt', pacotes: 'pkt',
+      'peça': 'pc', 'peças': 'pc', peca: 'pc', pecas: 'pc', rolo: 'roll', rolos: 'roll', jogo: 'set', jogos: 'set', fardo: 'carton', fardos: 'carton' },
+    colors: { vermelho: 'red', vermelha: 'red', amarelo: 'yellow', preto: 'black', preta: 'black', branco: 'white', branca: 'white',
+      dourado: 'golden', dourada: 'golden', prateado: 'silver' },
+    sizes: { pequeno: 'small', pequena: 'small', pequenos: 'small', pequenas: 'small', 'médio': 'medium', medio: 'medium', 'média': 'medium', 'médios': 'medium', 'médias': 'medium', medias: 'medium' },
+    stop: ['olá', 'ola', 'bom', 'dia', 'preciso', 'precisamos', 'mande', 'envie', 'enviar', 'quero', 'da', 'das', 'com', 'obrigado', 'obrigada',
+      'também', 'pedido', 'favor', 'por', 'para', 'até'],
+    deadlines: { 'amanhã': TOMORROW, amanha: TOMORROW, hoje: TODAY },
+    urgent: ['urgente'],
+    detect: /(olá|\bpreciso\b|\bcaixas?\b|dúzias?|\bduzias?\b|amanhã|\bamanha\b|\bobrigad[oa]\b|\bgrampeador\b|\bcaderno\b|\bcaneta\b|\bpacotes\b|\bfraldas\b|mamadeiras?)/i,
+  },
+  {
+    name: 'French',
+    numbers: { un: 1, une: 1, deux: 2, trois: 3, quatre: 4, cinq: 5, six: 6, sept: 7, huit: 8, neuf: 9, dix: 10,
+      douze: 12, quinze: 15, vingt: 20, trente: 30, quarante: 40, cinquante: 50, cent: 100 },
+    units: { douzaine: 'dozen', douzaines: 'dozen', 'boîte': 'box', boite: 'box', 'boîtes': 'box', boites: 'box', paquet: 'pkt', paquets: 'pkt',
+      'pièce': 'pc', 'pièces': 'pc', piece: 'pc', pieces: 'pc', rouleau: 'roll', rouleaux: 'roll', carton: 'carton', cartons: 'carton', lot: 'set', lots: 'set' },
+    colors: { rouge: 'red', rouges: 'red', bleu: 'blue', bleue: 'blue', vert: 'green', verte: 'green', jaune: 'yellow', noir: 'black', noire: 'black',
+      blanc: 'white', blanche: 'white', rose: 'pink', 'doré': 'golden', dore: 'golden', argent: 'silver', marron: 'brown' },
+    sizes: { petit: 'small', petite: 'small', petits: 'small', petites: 'small', moyen: 'medium', moyenne: 'medium', moyens: 'medium', moyennes: 'medium', grand: 'large', grande: 'large', grands: 'large', grandes: 'large' },
+    stop: ['bonjour', 'svp', 'merci', 'envoyez', 'envoyer', 'besoin', 'je', 'jai', 'nous', 'veux', 'voudrais', 'des', 'du', 'le', 'les', 'et',
+      'avec', 'aussi', 'commande', 'pour', 'sil', 'vous', 'plait', 'plaît', 'au', 'aux', 'en', 'il', 'me', 'faut', 'nous', 'faudrait', 'livrer', 'livrez'],
+    deadlines: { demain: TOMORROW, "aujourd'hui": TODAY, aujourdhui: TODAY },
+    urgent: ['urgent', 'vite'],
+    detect: /(\bbonjour\b|\bsvp\b|\bmerci\b|\bbesoin\b|douzaines?|boîtes?|\bboites?\b|\bdemain\b|agrafeuse|\bcahier\b|\bstylo\b|\bcadeau\b|horloges?|peluche|dernière fois)/i,
+  },
+  {
+    name: 'Arabic',
+    numbers: { 'واحد': 1, 'واحدة': 1, 'اثنين': 2, 'اتنين': 2, 'ثلاثة': 3, 'تلاتة': 3, 'اربعة': 4, 'خمسة': 5, 'ستة': 6, 'سبعة': 7,
+      'ثمانية': 8, 'تمنية': 8, 'تسعة': 9, 'عشرة': 10, 'عشرين': 20, 'ثلاثين': 30, 'خمسين': 50, 'مية': 100, 'مائة': 100, 'نص': 0.5, 'نصف': 0.5 },
+    units: { 'درزن': 'dozen', 'دزينة': 'dozen', 'دستة': 'dozen', 'علبة': 'box', 'علب': 'box', 'كرتونة': 'carton', 'كرتون': 'carton', 'كراتين': 'carton',
+      'باكيت': 'pkt', 'باكو': 'pkt', 'كيس': 'pkt', 'حبة': 'pc', 'حبات': 'pc', 'قطعة': 'pc', 'قطع': 'pc', 'رول': 'roll', 'لفة': 'roll', 'طقم': 'set' },
+    colors: { 'احمر': 'red', 'حمراء': 'red', 'ازرق': 'blue', 'اخضر': 'green', 'اصفر': 'yellow', 'اسود': 'black', 'ابيض': 'white', 'ذهبي': 'golden', 'فضي': 'silver' },
+    sizes: { 'صغير': 'small', 'صغيرة': 'small', 'متوسط': 'medium', 'وسط': 'medium', 'كبير': 'large', 'كبيرة': 'large' },
+    stop: ['السلام', 'عليكم', 'مرحبا', 'من', 'فضلك', 'لو', 'سمحت', 'ارسل', 'ابعت', 'ابعتلي', 'عايز', 'اريد', 'محتاج', 'نحتاج', 'و', 'مع', 'شكرا',
+      'طلب', 'يا', 'اخي', 'حبيبي', 'لي', 'في', 'على'],
+    deadlines: { 'بكرة': TOMORROW, 'بكره': TOMORROW, 'غدا': TOMORROW, 'اليوم': TODAY },
+    urgent: ['عاجل', 'بسرعة', 'ضروري'],
+    detect: /[؀-ۿ]/,
+  },
+  {
+    name: 'Indonesian',
+    numbers: { satu: 1, dua: 2, tiga: 3, empat: 4, lima: 5, enam: 6, tujuh: 7, delapan: 8, sembilan: 9, sepuluh: 10, selusin: 12,
+      seratus: 100, setengah: 0.5 },
+    units: { lusin: 'dozen', kotak: 'box', karton: 'carton', bungkus: 'pkt', buah: 'pc', biji: 'pc', rol: 'roll', pasang: 'pair' },
+    colors: { merah: 'red', biru: 'blue', hijau: 'green', kuning: 'yellow', hitam: 'black', putih: 'white', emas: 'golden', perak: 'silver', coklat: 'brown' },
+    sizes: { kecil: 'small', sedang: 'medium', besar: 'large' },
+    stop: ['halo', 'tolong', 'kirim', 'kirimkan', 'mau', 'butuh', 'pesan', 'pesanan', 'dengan', 'terima', 'kasih', 'juga', 'pak', 'bu', 'ya', 'yang', 'ini', 'itu'],
+    deadlines: { besok: TOMORROW },
+    urgent: ['segera', 'cepat'],
+    detect: /\b(tolong|kirim|lusin|kotak|besok|terima kasih|pulpen|buku tulis|gunting)\b/i,
+  },
+];
+
+/** Normalise a lexicon key the same way the tokenizer normalises text. */
+export function normKey(k: string): string {
+  return normArabic(k.toLowerCase());
+}
+
+export function languagesIn(text: string): string[] {
+  return PACKS.filter((p) => p.detect.test(text)).map((p) => p.name);
+}

@@ -1,0 +1,59 @@
+import type { OrderLine, Product } from './types';
+
+export interface Availability { sku: string; need: number; have: number; short: number }
+
+/** Total demand per SKU across the order (a customer may write the same item twice). */
+export function availability(lines: OrderLine[], catalog: Map<string, Product>): Map<string, Availability> {
+  const out = new Map<string, Availability>();
+  for (const l of lines) {
+    if (!l.sku) continue;
+    const p = catalog.get(l.sku);
+    if (!p) continue;
+    const a = out.get(l.sku) ?? { sku: l.sku, need: 0, have: p.stock, short: 0 };
+    a.need += l.billQty;
+    a.short = Math.max(0, a.need - a.have);
+    out.set(l.sku, a);
+  }
+  return out;
+}
+
+/** How much of each line can ship now, filling lines in order. */
+export function fillPlan(lines: OrderLine[], catalog: Map<string, Product>): Record<string, number> {
+  const left = new Map<string, number>();
+  const plan: Record<string, number> = {};
+  for (const l of lines) {
+    if (!l.sku) continue;
+    const p = catalog.get(l.sku);
+    if (!p) continue;
+    const have = left.get(l.sku) ?? p.stock;
+    const ship = Math.max(0, Math.min(have, l.billQty));
+    plan[l.id] = ship;
+    left.set(l.sku, have - ship);
+  }
+  return plan;
+}
+
+export interface ReorderSuggestion { product: Product; suggest: number; arrives: string; cover: string }
+
+/**
+ * Reorder list for the next supplier shipment: anything at or below its
+ * reorder point, topped up to twice the reorder point and rounded to whole cartons.
+ */
+export function reorderList(products: Product[], today = new Date()): ReorderSuggestion[] {
+  return products
+    .filter((p) => p.stock <= p.reorderAt)
+    .map((p) => {
+      const pack = p.carton ?? p.box ?? 1;
+      const raw = Math.max(p.reorderAt * 2 - p.stock, pack);
+      const suggest = Math.ceil(raw / pack) * pack;
+      const arrives = new Date(today);
+      arrives.setDate(arrives.getDate() + p.leadDays);
+      return {
+        product: p,
+        suggest,
+        arrives: arrives.toISOString().slice(0, 10),
+        cover: p.stock <= 0 ? 'Out of stock' : `${p.stock} left`,
+      };
+    })
+    .sort((a, b) => a.product.stock / a.product.reorderAt - b.product.stock / b.product.reorderAt);
+}

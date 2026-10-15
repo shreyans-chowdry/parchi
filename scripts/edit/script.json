@@ -1,0 +1,304 @@
+{
+ "sections": [
+  {
+   "id": "hook",
+   "mode": "full",
+   "title": null,
+   "units": [
+    {
+     "anchor": "every morning wholesalers around the world",
+     "broll": null
+    }
+   ]
+  },
+  {
+   "id": "problem",
+   "mode": "pip",
+   "title": "The problem",
+   "units": [
+    {
+     "anchor": "small retailers dont fill in order forms",
+     "broll": {
+      "slide": "problem"
+     }
+    }
+   ]
+  },
+  {
+   "id": "demo",
+   "mode": "pip",
+   "title": "Live demo",
+   "units": [
+    {
+     "anchor": "heres a spanish order in parchi",
+     "broll": {
+      "demo": [
+       0.0,
+       15.5
+      ]
+     }
+    },
+    {
+     "anchor": "heres a voice note full of trade slang",
+     "broll": {
+      "demo": [
+       15.5,
+       29.4
+      ]
+     }
+    },
+    {
+     "anchor": "this ones in arabic with arabic numerals",
+     "broll": {
+      "demo": [
+       29.4,
+       36.6
+      ]
+     }
+    },
+    {
+     "anchor": "now a messy one with typos",
+     "broll": {
+      "demo": [
+       36.6,
+       51.7
+      ]
+     }
+    },
+    {
+     "anchor": "when i confirm the invoice is stamped",
+     "broll": {
+      "demo": [
+       51.7,
+       60.0
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "turn",
+   "mode": "full",
+   "title": null,
+   "units": [
+    {
+     "anchor": "so how does it actually work",
+     "broll": null
+    }
+   ]
+  },
+  {
+   "id": "arch",
+   "mode": "pip",
+   "title": "How it works",
+   "units": [
+    {
+     "anchor": "every message goes through a tokenizer",
+     "broll": {
+      "slide": "architecture"
+     }
+    }
+   ]
+  },
+  {
+   "id": "code",
+   "mode": "pip",
+   "title": "Under the hood",
+   "units": [
+    {
+     "anchor": "each language is a pack",
+     "broll": {
+      "slide": "code-extract"
+     }
+    },
+    {
+     "anchor": "in the matcher text similarity is capped",
+     "broll": {
+      "slide": "code-match"
+     }
+    },
+    {
+     "anchor": "invoicing charges tax at each items rate",
+     "broll": {
+      "slide": "code-invoice"
+     }
+    }
+   ]
+  },
+  {
+   "id": "scale",
+   "mode": "pip",
+   "title": "Built to scale",
+   "units": [
+    {
+     "anchor": "its built to scale",
+     "broll": {
+      "slide": "scale"
+     }
+    }
+   ]
+  },
+  {
+   "id": "biz",
+   "mode": "pip",
+   "title": "Business model",
+   "units": [
+    {
+     "anchor": "the business model is simple",
+     "broll": {
+      "slide": "business"
+     }
+    }
+   ]
+  },
+  {
+   "id": "close",
+   "mode": "full",
+   "title": null,
+   "units": [
+    {
+     "anchor": "wholesale runs on chat",
+     "broll": null
+    }
+   ]
+  }
+ ],
+ "stickers": [
+  {
+   "on": [
+    "spanish text"
+   ],
+   "kind": "bubble",
+   "text": "Hola, necesito 2 cajas de grapadoras 24/6…",
+   "section": "hook"
+  },
+  {
+   "on": [
+    "arabic message"
+   ],
+   "kind": "bubble",
+   "text": "عايز ٢ كرتونة لمبة ليد",
+   "rtl": true,
+   "section": "hook"
+  },
+  {
+   "on": [
+    "handwritten slip"
+   ],
+   "kind": "photo",
+   "section": "hook"
+  },
+  {
+   "on": [
+    "this is parchi"
+   ],
+   "kind": "logo",
+   "section": "hook"
+  },
+  {
+   "on": [
+    "milliseconds"
+   ],
+   "kind": "stat",
+   "text": "5 ms",
+   "sub": "to read an order"
+  },
+  {
+   "on": [
+    "backorders the rest"
+   ],
+   "kind": "stat",
+   "text": "In stock: 40 / 60",
+   "sub": "20 backordered"
+  },
+  {
+   "on": [
+    "a hundred pieces"
+   ],
+   "kind": "stat",
+   "text": "2 cartons = 100",
+   "sub": "units converted"
+  },
+  {
+   "on": [
+    "one click settles it"
+   ],
+   "kind": "stat",
+   "text": "1 click",
+   "sub": "instead of a guess"
+  },
+  {
+   "on": [
+    "rules first"
+   ],
+   "kind": "stat",
+   "text": "Rules first.",
+   "sub": "AI only when unsure"
+  },
+  {
+   "on": [
+    "one batched call"
+   ],
+   "kind": "stat",
+   "text": "1 call",
+   "sub": "per doubtful order"
+  },
+  {
+   "on": [
+    "all passing"
+   ],
+   "kind": "stat",
+   "text": "31 / 31",
+   "sub": "tests passing"
+  },
+  {
+   "on": [
+    "not with volume",
+    "not volume",
+    "grows with confusion"
+   ],
+   "kind": "stat",
+   "text": "$0",
+   "sub": "for most order lines"
+  },
+  {
+   "on": [
+    "forty orders",
+    "40 orders"
+   ],
+   "kind": "stat",
+   "text": "$0",
+   "sub": "40 orders / month"
+  },
+  {
+   "on": [
+    "nineteen dollars",
+    "19"
+   ],
+   "kind": "stat",
+   "text": "$19",
+   "sub": "per shop / month"
+  },
+  {
+   "on": [
+    "fifty nine",
+    "59"
+   ],
+   "kind": "stat",
+   "text": "$59",
+   "sub": "warehouse plan"
+  }
+ ],
+ "lower_third": {
+  "on": [
+   "im shreyans"
+  ],
+  "name": "Shreyans Chowdry",
+  "role": "Founder, Parchi"
+ },
+ "end_card": {
+  "title": "Parchi",
+  "tag": "Chat orders in. Invoices out.",
+  "link": "claude.ai/artifact/HiDLiNUbpPLqL7FykEkN2y"
+ }
+}

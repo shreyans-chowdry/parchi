@@ -1,0 +1,83 @@
+// Text normalisation shared by the extractor and the catalog matcher.
+
+const DEVANAGARI_DIGITS = '०१२३४५६७८९';
+const TAMIL_DIGITS = '௦௧௨௩௪௫௬௭௮௯';
+const ARABIC_DIGITS = '٠١٢٣٤٥٦٧٨٩';
+const PERSIAN_DIGITS = '۰۱۲۳۴۵۶۷۸۹';
+
+/** Arabic letter variants written interchangeably in chat: alef forms, taa marbuta, alef maqsura, tatweel, harakat. */
+export function normArabic(s: string): string {
+  if (!/[\u0600-\u06ff]/.test(s)) return s;
+  return s.replace(/[\u064b-\u0652\u0640]/g, '').replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي');
+}
+
+/** Replace Devanagari, Tamil and Arabic-Indic digits with ASCII digits, keeping string length. */
+export function asciiDigits(s: string): string {
+  let out = '';
+  for (const ch of s) {
+    let v = -1;
+    for (const set of [DEVANAGARI_DIGITS, TAMIL_DIGITS, ARABIC_DIGITS, PERSIAN_DIGITS]) {
+      const i = set.indexOf(ch);
+      if (i >= 0) { v = i; break; }
+    }
+    out += v >= 0 ? String(v) : ch;
+  }
+  return out;
+}
+
+/** Common romanised words of Devanagari / Tamil trade terms, so script and roman spellings meet. */
+const SCRIPT_TO_ROMAN: Record<string, string> = {
+  'बल्ब': 'bulb', 'एलईडी': 'led', 'बैटरी': 'battery', 'सेल': 'cell', 'एक्सटेंशन': 'extension', 'बोर्ड': 'board',
+  'स्टेपलर': 'stapler', 'पिन': 'pin', 'पेन': 'pen', 'कॉपी': 'copy', 'कैंची': 'kainchi', 'ताला': 'taala',
+  'घड़ी': 'ghadi', 'फ्रेम': 'frame', 'बोतल': 'bottle', 'टेप': 'tape', 'चार्जर': 'charger', 'टॉर्च': 'torch',
+  'पेचकस': 'pechkas', 'हथौड़ा': 'hathoda', 'सॉकेट': 'socket', 'डायपर': 'diaper', 'खिलौना': 'khilona',
+  'बल्ब़': 'bulb', 'गिफ्ट': 'gift', 'पेपर': 'paper', 'रैप': 'wrap', 'मग': 'mug', 'वाट': 'watt',
+  'பல்பு': 'bulb', 'பேட்டரி': 'battery', 'பாட்டில்': 'bottle', 'டயாபர்': 'diaper', 'பூட்டு': 'poottu',
+  'கடிகாரம்': 'clock', 'ஸ்டேப்லர்': 'stapler', 'பேனா': 'pena', 'நோட்டு': 'notu', 'கத்தரிக்கோல்': 'kathirikol',
+  'சுத்தியல்': 'suthiyal', 'டேப்': 'tape', 'சார்ஜர்': 'charger', 'டார்ச்': 'torch', 'பொம்மை': 'bommai',
+  'துடைப்பான்': 'wipes', 'ஃபீடிங்': 'feeding', 'ஃப்ரேம்': 'frame', 'போட்டோ': 'photo',
+};
+
+export function romanise(word: string): string {
+  return SCRIPT_TO_ROMAN[word] ?? word;
+}
+
+/**
+ * Phonetic fold for romanised Indic words and typing errors.
+ * "steplar", "stapplar" and "stapler" all fold to "stapler"-like keys;
+ * "neela"/"nila", "chhota"/"chota" fold together.
+ */
+export function fold(input: string): string {
+  let w = normArabic(romanise(input).toLowerCase()).normalize('NFKD').replace(/[\u0300-\u036f]/g, '');
+  w = asciiDigits(w);
+  w = w.replace(/[^a-z0-9\u0900-\u097f\u0b80-\u0bff\u0600-\u06ff]/g, '');
+  if (!/[a-z]/.test(w)) return w; // digits or native script: leave as is
+  w = w
+    .replace(/ee/g, 'i').replace(/oo/g, 'u').replace(/aa/g, 'a')
+    .replace(/ph/g, 'f').replace(/sh/g, 's').replace(/kh/g, 'k').replace(/gh/g, 'g')
+    .replace(/th/g, 't').replace(/dh/g, 'd').replace(/bh/g, 'b').replace(/chh/g, 'c').replace(/ch/g, 'c')
+    .replace(/ck/g, 'k').replace(/q/g, 'k').replace(/z/g, 'j').replace(/w/g, 'v')
+    .replace(/(.)\1+/g, '$1');
+  // plural and Tamil "-u" endings: "pins"->"pin", "bulbu"->"bulb"
+  if (w.length > 4 && w.endsWith('es') && !w.endsWith('ses')) w = w.slice(0, -2);
+  else if (w.length > 3 && w.endsWith('s') && !w.endsWith('ss')) w = w.slice(0, -1);
+  if (w.length > 4 && /[^aeiou]u$/.test(w)) w = w.slice(0, -1);
+  // terminal "y" sounds like "i"
+  w = w.replace(/y$/, 'i');
+  return w;
+}
+
+/** Normalise a specification token: "24/6", "9W", "6 x 8", "No.10", "250 ml" -> "24/6", "9w", "6x8", "no10", "250ml". */
+export function normSpec(s: string): string {
+  return asciiDigits(s.toLowerCase())
+    .replace(/×/g, 'x')
+    .replace(/watts?|watt/g, 'w')
+    .replace(/inches|inch/g, 'in')
+    .replace(/pages|page|pgs/g, 'pg')
+    .replace(/sockets/g, 'socket')
+    .replace(/metres?|meters?|mtrs?/g, 'm')
+    .replace(/ltrs?|litres?|liters?/g, 'l')
+    .replace(/gms?|grams?/g, 'g')
+    .replace(/number|no\.?/g, 'no')
+    .replace(/[\s.]/g, '');
+}

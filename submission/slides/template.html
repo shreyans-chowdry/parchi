@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Parchi slides</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500;600;700&family=Kalam:wght@400;700&family=Rozha+One&display=swap">
+<style>
+:root {
+  --paper: #eef0e8; --sheet: #fbfbf7; --sheet-2: #f4f5ee; --slip: #fff8dc; --slip-rule: #c9d9e6;
+  --ink: #1c2133; --muted: #5d6476; --faint: #8a90a0; --rule: #d3d8cb;
+  --brand: #9b1c2c; --brand-soft: #f6e3e3; --carbon: #3a3fb4; --carbon-soft: #e6e7fb;
+  --haldi: #b97a0a; --haldi-soft: #fbefd2; --leaf: #23764f; --leaf-soft: #dff1e6;
+  --night: #161a2a;
+  --display: 'Rozha One', Georgia, serif; --body: 'Hind', system-ui, sans-serif; --hand: 'Kalam', cursive;
+}
+* { box-sizing: border-box; }
+html { font-size: calc(100vw / 120); }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--body); -webkit-font-smoothing: antialiased; }
+section { display: none; width: 100vw; height: 100vh; position: relative; overflow: hidden; padding: 4.5rem 6rem; }
+section:target { display: flex; flex-direction: column; justify-content: center; gap: 2.4rem; }
+section::after { content: ''; position: absolute; left: 0; right: 0; top: 0; border-top: 0.45rem double var(--brand); }
+.foot { position: absolute; left: 6rem; right: 6rem; bottom: 2.6rem; display: flex; justify-content: space-between; color: var(--faint); font-size: 1.05rem; }
+.foot b { font-family: var(--display); font-weight: 400; color: var(--brand); font-size: 1.4rem; }
+h1 { font-family: var(--display); font-weight: 400; font-size: 4.6rem; line-height: 1.02; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h2 { font-size: 1.9rem; font-weight: 600; margin: 0; line-height: 1.2; }
+p { margin: 0; }
+.lead { font-size: 1.75rem; line-height: 1.45; color: var(--muted); max-width: 52rem; }
+.kicker { font-size: 1.3rem; color: var(--brand); font-weight: 600; }
+.row { display: flex; gap: 2.4rem; align-items: stretch; }
+.card { background: var(--sheet); border: 1px solid var(--rule); border-radius: 1rem; box-shadow: 0 1px 0 rgba(28,33,51,.05), 0 1.2rem 2.6rem -1.4rem rgba(28,33,51,.3); }
+
+/* cover */
+#cover { justify-content: center; }
+.cover-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 4rem; align-items: center; }
+.word { display: flex; align-items: baseline; gap: 1.6rem; }
+.word b { font-family: var(--display); font-weight: 400; font-size: 9.5rem; color: var(--brand); line-height: .9; }
+.word span { font-family: var(--display); font-size: 4.4rem; color: var(--muted); }
+.tag { font-family: var(--display); font-size: 3.4rem; line-height: 1.1; margin-top: 1.6rem; }
+.slip { background: var(--slip); border-radius: .3rem .3rem .8rem .8rem; padding: 1.6rem 1.8rem 1.4rem 4rem; font-family: var(--hand); font-size: 2rem; line-height: 2.9rem;
+  background-image: linear-gradient(to right, transparent 2.8rem, rgba(155,28,44,.45) 2.8rem 2.9rem, transparent 2.9rem), repeating-linear-gradient(to bottom, transparent 0 2.82rem, var(--slip-rule) 2.82rem 2.9rem);
+  background-position: 0 0, 0 1.6rem; box-shadow: 0 1.2rem 2.6rem -1.4rem rgba(28,33,51,.35); }
+.q { color: var(--carbon); font-weight: 700; } .u { color: var(--carbon); }
+.it { text-decoration: underline; text-decoration-color: rgba(58,63,180,.55); text-decoration-thickness: .15rem; text-underline-offset: .45rem; }
+.at { text-decoration: underline wavy var(--haldi); text-decoration-thickness: .1rem; text-underline-offset: .45rem; }
+.dim { color: var(--faint); } .when { color: var(--brand); }
+.minibill { padding: 1.6rem 1.8rem; color: var(--carbon); font-size: 1.15rem; position: relative; }
+.minibill h3 { font-family: var(--display); font-weight: 400; color: var(--brand); font-size: 2rem; margin: 0 0 .6rem; }
+.minibill .l { display: flex; justify-content: space-between; padding: .45rem 0; border-bottom: 1px dotted var(--rule); }
+.minibill .tot { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid var(--carbon); border-bottom: .35rem double var(--carbon); margin-top: .9rem; padding: .4rem 0; font-family: var(--display); font-size: 2.4rem; color: var(--ink); }
+.minibill .tot small { font-family: var(--body); font-size: 1rem; color: var(--muted); }
+.stamp { position: absolute; right: 1.6rem; top: 1.2rem; transform: rotate(-9deg); border: .3rem double var(--brand); color: var(--brand); border-radius: .6rem; padding: .4rem 1rem .2rem; font-family: var(--display); font-size: 1.6rem; text-align: center; line-height: 1; }
+.stamp small { display: block; font-family: var(--body); font-size: .8rem; margin-top: .2rem; }
+.arrow { font-family: var(--display); color: var(--brand); font-size: 3rem; text-align: center; }
+
+/* problem */
+.msgs { display: grid; grid-template-columns: 1fr 1fr 0.8fr; gap: 1.8rem; align-items: start; }
+.bubble { background: #e3f2d9; border-radius: 1rem 1rem 1rem .2rem; padding: 1.2rem 1.4rem; font-size: 1.45rem; line-height: 1.4; box-shadow: 0 .4rem 1rem -.6rem rgba(0,0,0,.3); }
+.bubble small { display: block; color: var(--muted); font-size: 1rem; margin-top: .6rem; }
+.who { font-weight: 600; font-size: 1.1rem; color: var(--leaf); margin-bottom: .4rem; }
+.voice { display: flex; align-items: center; gap: .8rem; }
+.voice i { width: 2.6rem; height: 2.6rem; border-radius: 50%; background: var(--leaf); flex: none; display: grid; place-items: center; color: #fff; font-style: normal; font-size: 1rem; }
+.wave { display: flex; gap: .18rem; align-items: center; height: 2.6rem; }
+.wave s { width: .25rem; background: var(--muted); border-radius: .2rem; display: block; }
+.photo img { width: 100%; max-height: 21rem; object-fit: cover; object-position: center 30%; border-radius: .8rem; display: block; box-shadow: 0 .6rem 1.4rem -.8rem rgba(0,0,0,.5); }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+.stat b { font-family: var(--display); font-weight: 400; font-size: 3.6rem; color: var(--carbon); line-height: 1; display: block; }
+.stat span { font-size: 1.3rem; color: var(--muted); line-height: 1.35; display: block; margin-top: .5rem; }
+
+/* pipeline */
+.pipe { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1rem; align-items: stretch; }
+.step { padding: 1.2rem 1.1rem; display: grid; gap: .5rem; align-content: start; position: relative; }
+.step b { font-size: 1.3rem; }
+.step span { font-size: 1.05rem; color: var(--muted); line-height: 1.35; }
+.step em { font-style: normal; font-family: var(--hand); color: var(--carbon); font-size: 1.15rem; }
+.step:not(:last-child)::after { content: '→'; position: absolute; right: -1.05rem; top: 45%; color: var(--brand); font-size: 1.4rem; font-weight: 700; }
+.step.ai { background: var(--carbon-soft); border-color: var(--carbon); }
+.stack { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; }
+.stack div { padding: 1.1rem 1.3rem; border-left: .35rem solid var(--brand); background: var(--sheet); border-radius: .4rem; }
+.stack b { display: block; font-size: 1.25rem; }
+.stack span { color: var(--muted); font-size: 1.1rem; }
+
+/* code */
+.code-wrap { display: grid; grid-template-columns: 1.5fr 1fr; gap: 3rem; align-items: start; }
+pre { margin: 0; background: var(--night); color: #e6e8f2; border-radius: 1rem; padding: 1.6rem 1.8rem; font-family: 'DejaVu Sans Mono', ui-monospace, monospace; font-size: 1.02rem; line-height: 1.55; overflow: hidden; white-space: pre; }
+pre .gap { color: #6b7194; }
+.hljs-comment { color: #8b93b8; font-style: italic; }
+.hljs-keyword, .hljs-built_in { color: #ff8a9a; }
+.hljs-string { color: #f3cd7a; }
+.hljs-number, .hljs-literal { color: #9fe3b8; }
+.hljs-title, .hljs-title.function_ { color: #a9b0ff; }
+.hljs-attr, .hljs-property { color: #c9cde6; }
+.notes { display: grid; gap: 1.4rem; }
+.notes div { display: grid; gap: .3rem; }
+.notes b { font-size: 1.35rem; }
+.notes span { font-size: 1.2rem; color: var(--muted); line-height: 1.4; }
+.file { font-size: 1.05rem; color: var(--faint); margin-bottom: .6rem; }
+.term { background: var(--night); color: #cfd3e6; border-radius: 1rem; padding: 1.2rem 1.6rem; font-family: 'DejaVu Sans Mono', monospace; font-size: .92rem; line-height: 1.5; white-space: pre; overflow: hidden; }
+.term .ok { color: #7fdca4; }
+
+/* scale + business */
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.8rem; }
+.pt { padding: 1.6rem 1.8rem; display: grid; gap: .5rem; align-content: start; }
+.pt b { font-family: var(--display); font-weight: 400; font-size: 2.5rem; color: var(--carbon); line-height: 1.05; }
+.pt h2 { font-size: 1.45rem; }
+.pt span { color: var(--muted); font-size: 1.2rem; line-height: 1.4; }
+.tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.8rem; }
+.tier { padding: 1.6rem 1.8rem; display: grid; gap: .5rem; align-content: start; }
+.tier.pick { border: .2rem solid var(--brand); }
+.tier h2 { font-size: 1.7rem; }
+.tier .price { font-family: var(--display); font-size: 3rem; line-height: 1; }
+.tier .price small { font-family: var(--body); font-size: 1.1rem; color: var(--muted); }
+.tier ul { margin: .3rem 0 0; padding-left: 1.3rem; font-size: 1.15rem; line-height: 1.55; color: var(--muted); }
+.close h1 { font-size: 5.6rem; }
+.links { display: grid; gap: .8rem; font-size: 1.5rem; }
+.links b { color: var(--brand); }
+</style>
+</head>
+<body>
+
+<!-- ============================ COVER -->
+<section id="cover">
+  <div class="cover-grid">
+    <div>
+      <div class="word"><b>Parchi</b></div>
+      <p class="tag">Chat orders in.<br>Invoices out.</p>
+      <p class="lead" style="margin-top:1.6rem">An order desk for wholesalers. It reads orders the way retailers actually send them: chat messages, voice notes and handwritten slips, in 7 languages.</p>
+    </div>
+    <div style="display:grid; gap:1.2rem">
+      <div class="slip"><span class="dim">Hola, necesito </span><span class="q">2</span> <span class="u">cajas</span><span class="dim"> de </span><span class="it">grapadoras</span> <span class="at">24/6</span>, <span class="q">5</span> <span class="u">docenas</span><span class="dim"> de </span><span class="it">papel de regalo</span> <span class="at">rojo</span>, <span class="q">10</span> <span class="u">paquetes</span><span class="dim"> de </span><span class="it">grapas</span> <span class="at">24/6</span><span class="dim"> y </span><span class="q">6</span> <span class="u">rollos</span><span class="dim"> de </span><span class="it">cinta de embalaje</span>. <span class="dim">Para </span><span class="when">mañana</span></div>
+      <div class="arrow">↓</div>
+      <div class="card minibill">
+        <div class="stamp">Billed<small>INV-2026-0143</small></div>
+        <h3>Invoice</h3>
+        <div class="l"><span>Heavy stapler 24/6</span><span>24 pcs</span></div>
+        <div class="l"><span>Gift wrap paper, red</span><span>40 pcs <span style="color:var(--haldi)">+20 backorder</span></span></div>
+        <div class="l"><span>Staple pins 24/6</span><span>10 pkts</span></div>
+        <div class="l"><span>Brown packing tape 2 inch</span><span>6 rolls</span></div>
+        <div class="tot"><small>USD, 15% tax included</small><span>$58.10</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>Next Founders Hackathon 2026</span><span>Shreyans Chowdry</span></div>
+</section>
+
+<!-- ============================ PROBLEM -->
+<section id="problem" style="gap:1.8rem; padding-bottom:6rem">
+  <p class="kicker">The problem</p>
+  <h1>Every wholesale order gets typed twice.</h1>
+  <div class="msgs">
+    <div class="bubble"><div class="who">Papelería Hernández, Mexico City</div>Hola, necesito 2 cajas de grapadoras 24/6, 5 docenas de papel de regalo rojo, 10 paquetes de grapas 24/6 y 6 rollos de cinta de embalaje. Para mañana por favor 🙏<small>WhatsApp text · Spanish</small></div>
+    <div style="display:grid; gap:1.2rem">
+      <div class="bubble"><div class="who">Al Noor Hardware, Dubai</div><div class="voice"><i>▶</i><div class="wave">__WAVE__</div><span>0:19</span></div><small>Voice note: “pechkas set das set, plaas ek dozen…”</small></div>
+      <div class="bubble" dir="rtl" style="text-align:right"><div class="who">Al Amal Electricals, Cairo</div>السلام عليكم، عايز ٢ كرتونة لمبة ليد 9W، ١٠ مشترك 4 socket، و ٥ علب بطارية AA<small dir="ltr">WhatsApp text · Arabic</small></div>
+    </div>
+    <div class="photo"><img src="__PARCHI__" alt="Photo of a handwritten order slip"></div>
+  </div>
+  <div class="stats">
+    <div class="stat"><b>7 languages</b><span>English, Spanish, Portuguese, French, Arabic, Indonesian and Hindi, often mixed in one message</span></div>
+    <div class="stat"><b>~6 min</b><span>to read, decode and retype one order by hand (our estimate)</span></div>
+    <div class="stat"><b>3 formats</b><span>text, voice notes and photos of handwritten slips, every single morning</span></div>
+  </div>
+  <div class="foot"><b>Parchi</b><span>Billing tools like QuickBooks and Xero assume someone has already retyped the order.</span></div>
+</section>
+
+<!-- ============================ ARCHITECTURE -->
+<section id="architecture">
+  <p class="kicker">How it works</p>
+  <h1>Rules first. Model only on doubt.</h1>
+  <div class="pipe">
+    <div class="card step"><b>Message</b><span>Text, voice transcript, or a slip photo read by Claude vision</span></div>
+    <div class="card step"><b>Tokenizer</b><span>Keeps <em>24/6</em>, <em>No.10</em>, <em>6x8</em> whole; Arabic-Indic digits, French elision</span></div>
+    <div class="card step"><b>Extractor</b><span>One language pack per language: <em>docena</em>, <em>caixa</em>, <em>douzaine</em>, <em>كرتونة</em>, <em>lusin</em></span></div>
+    <div class="card step"><b>Matcher</b><span>IDF tokens + trigrams over 356 aliases, then specs, colour, size</span></div>
+    <div class="card step"><b>Confidence</b><span>Near-tie? Customer's past orders decide. Still unsure? Flag it.</span></div>
+    <div class="card step ai"><b>Claude</b><span>Only doubtful lines, one batched JSON call per order, SKUs allow-listed</span></div>
+    <div class="card step"><b>Bill</b><span>Units, stock, tax by rate, export zero-rating, reply in their language</span></div>
+  </div>
+  <div class="stack">
+    <div><b>React 18 + TypeScript</b><span>Vite single-file build, custom design system, light and dark</span></div>
+    <div><b>Order engine, pure TypeScript</b><span>~1,300 lines, zero dependencies, same code in browser and server</span></div>
+    <div><b>Claude</b><span>Photo transcription and doubtful-line resolution</span></div>
+    <div><b>Supabase Postgres</b><span>Row-level security, pg_trgm, pgvector, pgmq queue</span></div>
+    <div><b>Deno Edge Functions</b><span>parse-order and the WhatsApp Cloud API webhook</span></div>
+    <div><b>Vitest</b><span>31 tests: every language, matching, units, invoicing, stock</span></div>
+  </div>
+  <div class="foot"><b>Parchi</b><span>A typical order is read on the device in a few milliseconds.</span></div>
+</section>
+
+<!-- ============================ CODE 1 -->
+<section id="code-extract">
+  <p class="kicker">The build · language packs</p>
+  <h1>Adding a language is adding a pack.</h1>
+  <div class="code-wrap" style="grid-template-columns: 2.3fr 1fr; gap: 2rem">
+    <div style="min-width:0"><div class="file">src/engine/global.ts · src/engine/lexicon.ts</div><pre style="font-size:.86rem">__CODE1__</pre></div>
+    <div class="notes">
+      <div><b>One pack per language</b><span>Number words, units, colours, sizes, fillers and deadline words. The engine itself never changes.</span></div>
+      <div><b>Normalised before matching</b><span>Arabic letter variants and digits, French elision, accents and plurals are folded away first.</span></div>
+      <div><b>Collisions are tested</b><span>A word is only added if it doesn't break another language: “dos” is two in Spanish, “par” means different things in different languages.</span></div>
+    </div>
+  </div>
+  <div class="foot"><b>Parchi</b><span>Spanish, Portuguese, French, Arabic, Indonesian, Hindi, English</span></div>
+</section>
+
+<!-- ============================ CODE 2 -->
+<section id="code-match">
+  <p class="kicker">The build · matcher</p>
+  <h1>Text gets you close. Specs decide.</h1>
+  <div class="code-wrap">
+    <div><div class="file">src/engine/match.ts</div><pre>__CODE2__</pre></div>
+    <div class="notes">
+      <div><b>Similarity is capped at 0.8</b><span>“stapler” matches two staplers equally well. Only agreeing on <em style="font-family:var(--hand);color:var(--carbon);font-style:normal">24/6</em> can push one ahead.</span></div>
+      <div><b>Contradictions cost more</b><span>Asking for 9 W and getting 12 W is penalised harder than a missing detail is rewarded.</span></div>
+      <div><b>History breaks ties</b><span>“100 gift wrap” from a shop that always buys golden gets golden, and the app says why.</span></div>
+    </div>
+  </div>
+  <div class="foot"><b>Parchi</b><span>Same scoring maps onto pg_trgm in Postgres for large catalogs</span></div>
+</section>
+
+<!-- ============================ CODE 3 -->
+<section id="code-invoice">
+  <p class="kicker">The build · invoicing and tests</p>
+  <h1>Invoices for any market.</h1>
+  <div class="code-wrap">
+    <div style="display:grid; gap:1.4rem">
+      <div><div class="file">src/engine/invoice.ts</div><pre>__CODE3__</pre></div>
+      <div class="term">__TESTS__</div>
+    </div>
+    <div class="notes">
+      <div><b>Tax by item rate</b><span>Each product carries its own rate; the invoice summarises tax by rate.</span></div>
+      <div><b>Exports are zero-rated</b><span>Cross-border customers get a zero-rated invoice automatically.</span></div>
+      <div><b>Settings, not code</b><span>Currency, tax rates and numbering are configuration, so a new market needs no new code.</span></div>
+    </div>
+  </div>
+  <div class="foot"><b>Parchi</b><span>31 tests, all passing</span></div>
+</section>
+
+<!-- ============================ SCALE -->
+<section id="scale">
+  <p class="kicker">Scalability</p>
+  <h1>Cheap per order. Safe per shop.</h1>
+  <div class="grid3">
+    <div class="card pt"><b>~$0</b><h2>for most order lines</h2><span>The rules engine reads them on the device. The model sees only doubtful lines and photos.</span></div>
+    <div class="card pt"><b>1 call</b><h2>per doubtful order</h2><span>All unclear lines go to Claude together as one JSON request, so cost grows with confusion, not volume.</span></div>
+    <div class="card pt"><b>RLS</b><h2>on every table</h2><span>Each wholesaler's catalog, customers and bills are isolated by business_id in Postgres.</span></div>
+    <div class="card pt"><b>Queue</b><h2>behind WhatsApp</h2><span>The webhook stores each message once and enqueues it in pgmq. Morning rushes never block.</span></div>
+    <div class="card pt"><b>pg_trgm</b><h2>for big catalogs</h2><span>The database pre-filters a dozen candidates, the engine scores them. pgvector is ready as a fallback.</span></div>
+    <div class="card pt"><b>Atomic</b><h2>bill numbers and stock</h2><span>A per-year counter and a stock trigger run in the same transaction as the invoice.</span></div>
+  </div>
+  <div class="foot"><b>Parchi</b><span>supabase/migrations/0001_init.sql · supabase/functions</span></div>
+</section>
+
+<!-- ============================ BUSINESS -->
+<section id="business">
+  <p class="kicker">Business model</p>
+  <h1>Priced per shop, like a phone plan.</h1>
+  <div class="tiers">
+    <div class="card tier"><h2>Starter</h2><p class="price">$0</p><ul><li>40 orders a month</li><li>Text orders in every language</li><li>Invoices with tax summary</li></ul></div>
+    <div class="card tier pick"><h2>Shop</h2><p class="price">$19 <small>/ month</small></p><ul><li>Unlimited text orders</li><li>300 photo and voice reads</li><li>Stock, reorders, collections</li></ul></div>
+    <div class="card tier"><h2>Warehouse</h2><p class="price">$59 <small>/ month</small></p><ul><li>WhatsApp Business inbox</li><li>Unlimited reads, several warehouses</li><li>QuickBooks, Xero, Zoho export</li></ul></div>
+  </div>
+  <div class="grid3">
+    <div><h2>The wedge</h2><p class="lead" style="font-size:1.25rem">Wholesale districts where orders already run on WhatsApp. One distributor brings its whole retailer network.</p></div>
+    <div><h2>Why it spreads</h2><p class="lead" style="font-size:1.25rem">Every invoice goes back to a retailer on WhatsApp. Retailers who get clean invoices ask their other suppliers for the same.</p></div>
+    <div><h2>Why it pays</h2><p class="lead" style="font-size:1.25rem">One saved hour a day at a counter is worth far more than $19 a month, and our cost per order stays close to zero.</p></div>
+  </div>
+  <div class="foot"><b>Parchi</b><span>Priced per shop, not per user</span></div>
+</section>
+
+<!-- ============================ CLOSE -->
+<section id="close" class="close">
+  <div class="cover-grid" style="grid-template-columns: 1fr 1.15fr">
+    <div style="display:grid; gap:2rem">
+      <div class="word"><b>Parchi</b></div>
+      <h1 style="font-size:3.6rem">Chat orders in. Invoices out.</h1>
+      <p class="lead" style="font-size:1.5rem">Next: pilots with wholesale distributors, then the WhatsApp Business inbox so orders land in Parchi without copy and paste.</p>
+      <div class="links">
+        <span><b>Try it</b> &nbsp;__DEMO__</span>
+        <span><b>Code</b> &nbsp;__REPO__</span>
+      </div>
+    </div>
+    <img src="../gallery/07-billed-whatsapp-reply.png" alt="Parchi with a billed order" style="width:100%; border-radius:1rem; box-shadow: 0 1.6rem 3rem -1.6rem rgba(28,33,51,.5); border:1px solid var(--rule)">
+  </div>
+  <div class="foot"><span>Next Founders Hackathon 2026</span><span>Shreyans Chowdry</span></div>
+</section>
+</body>
+</html>

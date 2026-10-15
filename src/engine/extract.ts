@@ -1,0 +1,311 @@
+// Turns a free-text order ("bhaiya 2 box stapler 24/6, 5 dozen gift wrap red wala, kal tak")
+// into item lines with quantity, unit, item words, specs and attributes, keeping the
+// character spans of every piece so the UI can show where each value came from.
+
+import type { Deadline, ExtractedLine, OrderUnit, Span, Token } from './types';
+import {
+  COLORS, DEADLINE_WORDS, DO_VERBS, MULTIPLIERS, NUMBER_WORDS, REPEAT_PATTERNS, SIZES, SPEC_PREFIX,
+  SPEC_SUFFIX, STOPWORDS, UNIT_WORDS, URGENT_WORDS, WEEKDAYS,
+} from './lexicon';
+import { normSpec } from './normalize';
+import { languagesIn } from './global';
+import { tokenize } from './tokenize';
+
+interface Draft {
+  qty?: number;
+  qtySpan?: Span;
+  unit?: OrderUnit;
+  words: Token[];
+  specs: string[];
+  color?: string;
+  size?: 'small' | 'medium' | 'large';
+  highlights: ExtractedLine['highlights'];
+  start?: number;
+  end?: number;
+}
+
+const newDraft = (): Draft => ({ words: [], specs: [], highlights: [] });
+
+const GLUED = /^(\d+(?:\.\d+)?)([a-zऀ-ॿ஀-௿]+)$/;
+
+function numberValue(t: Token): number | undefined {
+  if (t.kind === 'number') return parseFloat(t.low);
+  const w = NUMBER_WORDS[t.low];
+  return w;
+}
+
+function unitOf(t?: Token): OrderUnit | undefined {
+  if (!t || t.kind !== 'word') return undefined;
+  return UNIT_WORDS[t.low];
+}
+
+function isSpecWord(t?: Token): boolean {
+  return !!t && t.kind === 'word' && SPEC_SUFFIX.test(t.low);
+}
+
+/** A token that is itself a spec: "24/6", "6x8", "a4", "no.10", "9w", "250ml", "usb-c". */
+function specToken(t: Token): string | undefined {
+  const l = t.low;
+  if (/^\d+(?:\.\d+)?\/\d+$/.test(l)) return l;                 // 24/6
+  if (/^\d+(?:\.\d+)?x\d+(?:\.\d+)?$/.test(l)) return l;         // 6x8
+  if (/^(no|no\.)\d+$/.test(l)) return normSpec(l);             // no.10
+  if (/^a[3-5]$/.test(l)) return l;                              // a4
+  if (/^aa{1,2}$/.test(l)) return l;                             // aa, aaa battery
+  if (/^usb-?c$/.test(l)) return 'usbc';
+  const g = GLUED.exec(l);
+  if (g && SPEC_SUFFIX.test(g[2])) return normSpec(l);          // 9w, 250ml, 12inch
+  return undefined;
+}
+
+export interface ExtractResult {
+  lines: ExtractedLine[];
+  deadline?: Deadline;
+  repeatHint: boolean;
+  languages: string[];
+}
+
+export function detectLanguages(text: string): string[] {
+  const langs = new Set<string>();
+  if (/[ऀ-ॿ]/.test(text)) langs.add('Hindi');
+  if (/[஀-௿]/.test(text)) langs.add('Tamil');
+  const low = text.toLowerCase();
+  if (/\b(bhaiya|bhej|chahiye|wala|wali|aur|kal|dena|dabba|peti|darjan|ek|teen|paanch|das|chhota|bada)\b/.test(low)) langs.add('Hindi');
+  if (/\b(anna|venum|anuppunga|naalaikku|rendu|moonu|naalu|anju|pathu|kudunga|periya|chinna)\b/.test(low)) langs.add('Tamil');
+  for (const l of languagesIn(text)) langs.add(l);
+  if (/\b(please|pls|send|need|box|dozen|pcs|and|same|last|time|small|big)\b/.test(low) || langs.size === 0) langs.add('English');
+  return [...langs];
+}
+
+export function extractDeadline(tokens: Token[], sentAt: Date): Deadline | undefined {
+  let found: Deadline | undefined;
+  let urgent = false;
+  for (const t of tokens) {
+    if (URGENT_WORDS.has(t.low)) urgent = true;
+    const d = DEADLINE_WORDS[t.low];
+    if (d && !found) {
+      const date = new Date(sentAt);
+      date.setDate(date.getDate() + d.days);
+      found = { label: d.label, date: date.toISOString().slice(0, 10), urgent: false, span: { start: t.start, end: t.end } };
+    }
+    const wd = WEEKDAYS[t.low];
+    if (wd !== undefined && !found && t.low.length > 3) {
+      const date = new Date(sentAt);
+      const diff = (wd - date.getDay() + 7) % 7 || 7;
+      date.setDate(date.getDate() + diff);
+      found = {
+        label: date.toLocaleDateString('en-IN', { weekday: 'long' }),
+        date: date.toISOString().slice(0, 10), urgent: false, span: { start: t.start, end: t.end },
+      };
+    }
+  }
+  if (found) found.urgent = urgent;
+  else if (urgent) found = { label: 'Urgent', urgent: true, date: sentAt.toISOString().slice(0, 10) };
+  return found;
+}
+
+/** Blank out phrases like "same gift items as last time" so they don't become item lines. */
+function maskPhrases(text: string): string {
+  let out = text;
+  for (const re of REPEAT_PATTERNS) {
+    const g = new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g');
+    out = out.replace(g, (m) => ' '.repeat(m.length));
+  }
+  return out;
+}
+
+export function extract(text: string, sentAt: Date = new Date()): ExtractResult {
+  const tokens = tokenize(maskPhrases(text));
+  const lines: ExtractedLine[] = [];
+  let d = newDraft();
+
+  const touch = (t: Token) => {
+    d.start = d.start === undefined ? t.start : Math.min(d.start, t.start);
+    d.end = d.end === undefined ? t.end : Math.max(d.end, t.end);
+  };
+
+  const flush = () => {
+    if (d.words.length === 0) {
+      // A bare quantity after an item ("stapler - 20"): give it to the previous line.
+      const prev = lines[lines.length - 1];
+      // Elliptical item: "25 large diapers and 10 small" -> second line is small diapers.
+      if (d.qty !== undefined && prev && !prev.qtyAssumed && (d.size || d.color || d.specs.length)) {
+        const start = d.start ?? prev.span.end;
+        const end = d.end ?? start;
+        lines.push({
+          raw: text.slice(start, end), span: { start, end }, qty: d.qty, qtyAssumed: false, unit: d.unit ?? prev.unit,
+          itemText: prev.itemText, itemTokens: prev.itemTokens, specs: d.specs,
+          color: d.color, size: d.size, highlights: d.highlights,
+        });
+        d = newDraft();
+        return;
+      }
+      if (d.qty !== undefined && prev && prev.qtyAssumed) {
+        prev.qty = d.qty;
+        prev.qtyAssumed = false;
+        if (d.unit) prev.unit = d.unit;
+        prev.highlights.push(...d.highlights);
+        prev.span.end = Math.max(prev.span.end, d.end ?? prev.span.end);
+        prev.raw = text.slice(prev.span.start, prev.span.end);
+      }
+      d = newDraft();
+      return;
+    }
+    const start = d.start ?? d.words[0].start;
+    const end = d.end ?? d.words[d.words.length - 1].end;
+    lines.push({
+      raw: text.slice(start, end),
+      span: { start, end },
+      qty: d.qty ?? 1,
+      qtyAssumed: d.qty === undefined,
+      unit: d.unit,
+      itemText: d.words.map((w) => w.raw).join(' '),
+      itemTokens: d.words.map((w) => w.fold).filter(Boolean),
+      specs: d.specs,
+      color: d.color,
+      size: d.size,
+      highlights: d.highlights,
+    });
+    d = newDraft();
+  };
+
+  for (let i = 0; i < tokens.length; i++) {
+    const t = tokens[i];
+    const next = tokens[i + 1];
+    const prev = tokens[i - 1];
+
+    if (t.kind === 'sep') { flush(); continue; }
+
+    // "6 in 1" style specs
+    if (t.kind === 'number' && next?.low === 'in' && tokens[i + 2]?.kind === 'number') {
+      d.specs.push(`${t.low}in${tokens[i + 2].low}`);
+      d.highlights.push({ span: { start: t.start, end: tokens[i + 2].end }, role: 'attr' });
+      touch(t); touch(tokens[i + 2]);
+      i += 2;
+      continue;
+    }
+
+    // Spec written as one token: 24/6, 6x8, 9w, no.10, a4
+    const spec = specToken(t);
+    if (spec) {
+      d.specs.push(spec);
+      d.highlights.push({ span: { start: t.start, end: t.end }, role: 'attr' });
+      touch(t);
+      continue;
+    }
+
+    // Number glued to a unit: 20pcs, 5dz, 10pkt
+    const glued = GLUED.exec(t.low);
+    if (glued && UNIT_WORDS[glued[2]]) {
+      if (d.qty !== undefined && d.words.length > 0) flush();
+      d.qty = parseFloat(glued[1]);
+      d.unit = UNIT_WORDS[glued[2]];
+      d.highlights.push({ span: { start: t.start, end: t.start + glued[1].length }, role: 'qty' });
+      d.highlights.push({ span: { start: t.start + glued[1].length, end: t.end }, role: 'unit' });
+      touch(t);
+      continue;
+    }
+
+    // Spec prefix: "no 10", "size 4"
+    if (SPEC_PREFIX.has(t.low) && next?.kind === 'number' && !unitOf(tokens[i + 2])) {
+      d.specs.push(normSpec(`${t.low}${next.low}`));
+      d.highlights.push({ span: { start: t.start, end: next.end }, role: 'attr' });
+      touch(t); touch(next);
+      i += 1;
+      continue;
+    }
+
+    let value = numberValue(t);
+    // "do" after a verb means "give": "bhej do"
+    if (value !== undefined && t.low === 'do' && prev && DO_VERBS.has(prev.low)) value = undefined;
+    // number words need a following item/unit/number to count; a trailing "do" is a verb
+    if (value !== undefined && t.kind === 'word' && (!next || next.kind === 'sep') && d.words.length === 0) value = undefined;
+    // a number word we decided not to read as a quantity carries no item meaning either
+    if (value === undefined && NUMBER_WORDS[t.low] !== undefined) continue;
+
+    if (value !== undefined) {
+      // Number followed by a spec word: "9 W", "200 pages", "4 socket"
+      if (t.kind === 'number' && isSpecWord(next) && !unitOf(next)) {
+        d.specs.push(normSpec(`${t.low}${next!.low}`));
+        d.highlights.push({ span: { start: t.start, end: next!.end }, role: 'attr' });
+        touch(t); touch(next!);
+        i += 1;
+        continue;
+      }
+      // compound numbers: "do sau", "paanch hazaar", "ek sau bees"
+      let end = t.end;
+      let j = i + 1;
+      const mult = tokens[j] ? MULTIPLIERS[tokens[j].low] : undefined;
+      if (mult) { value *= mult; end = tokens[j].end; j++; }
+      const add = tokens[j] && mult ? numberValue(tokens[j]) : undefined;
+      if (add !== undefined && add < (mult ?? 0)) { value += add; end = tokens[j].end; j++; }
+
+      // a new quantity after a complete item starts the next line ("2 box stapler 5 dozen pins")
+      if (d.qty !== undefined && d.words.length > 0) flush();
+      d.qty = value;
+      d.highlights.push({ span: { start: t.start, end }, role: 'qty' });
+      touch(t);
+      d.end = Math.max(d.end ?? end, end);
+      i = j - 1;
+      const u = unitOf(tokens[i + 1]);
+      if (u) {
+        d.unit = u;
+        const ut = tokens[i + 1];
+        d.highlights.push({ span: { start: ut.start, end: ut.end }, role: 'unit' });
+        touch(ut);
+        i += 1;
+      }
+      continue;
+    }
+
+    const u = unitOf(t);
+    // A unit word right after item words with no quantity yet is part of the
+    // product name: "geometry box", "lunch box", "screwdriver set", "rattle set".
+    if (u && d.qty === undefined && d.words.length > 0 && (u === 'box' || u === 'set' || u === 'pkt')) {
+      d.words.push(t);
+      d.highlights.push({ span: { start: t.start, end: t.end }, role: 'item' });
+      touch(t);
+      continue;
+    }
+    if (u) {
+      // unit without a number ("a dozen pliers", "screwdriver set"): keep the unit,
+      // leave the quantity open so a later number can still fill it.
+      d.unit = d.unit ?? u;
+      d.highlights.push({ span: { start: t.start, end: t.end }, role: 'unit' });
+      touch(t);
+      continue;
+    }
+
+    const color = COLORS[t.low];
+    if (color) {
+      d.color = color;
+      d.highlights.push({ span: { start: t.start, end: t.end }, role: 'attr' });
+      touch(t);
+      continue;
+    }
+    const size = SIZES[t.low];
+    if (size && (t.low.length > 1 || d.words.length > 0)) {
+      d.size = size;
+      d.highlights.push({ span: { start: t.start, end: t.end }, role: 'attr' });
+      touch(t);
+      continue;
+    }
+
+    if (STOPWORDS.has(t.low) || t.low === 'x' || t.low.length === 1) continue;
+    if (DEADLINE_WORDS[t.low] || WEEKDAYS[t.low] !== undefined) continue;
+
+    // A new item word right after a complete item with its own quantity and an
+    // explicit unit ("20 box stapler 5 dozen pins" handled by numbers above) stays
+    // in the current line; words simply accumulate.
+    d.words.push(t);
+    d.highlights.push({ span: { start: t.start, end: t.end }, role: 'item' });
+    touch(t);
+  }
+  flush();
+
+  return {
+    lines,
+    deadline: extractDeadline(tokens, sentAt),
+    repeatHint: REPEAT_PATTERNS.some((r) => r.test(text)),
+    languages: detectLanguages(text),
+  };
+}
